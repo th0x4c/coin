@@ -1,0 +1,42 @@
+TIMEOUT=60
+INTERVAL=20
+COUNT=3
+
+coin_description()
+{
+  echo "Collect diagnostic information for DB performance / hang issue."
+}
+
+coin_setup()
+{
+  if [ $(sqlplus_version) -gt 102030 ]
+  then
+    PRELIM="--prelim"
+  fi
+}
+
+coin_main()
+{
+  cnt=1
+  while [ $cnt -le $COUNT ]
+  do
+    if [ $cnt -ne 1 ]
+    then
+      sleep $INTERVAL
+    fi
+
+    execute $TIMEOUT "coin-top.sh"                 ""        "$cnt / $COUNT"
+    execute $TIMEOUT "coin-ps-elf.sh"              ""        "$cnt / $COUNT"
+    execute $TIMEOUT "dbhang.sql"                  ""        "$cnt / $COUNT"
+    execute $TIMEOUT "oradebug-systemstate266.sql" "$PRELIM" "$cnt / $COUNT"
+
+    cnt=$(expr $cnt + 1)
+  done
+}
+
+coin_teardown()
+{
+  bdump=$(show_parameter "background_dump_dest")
+  udump=$(show_parameter "user_dump_dest")
+  collect ${bdump},${udump}
+}

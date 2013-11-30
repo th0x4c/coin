@@ -1,0 +1,23 @@
+TIMEOUT=60
+
+coin_description()
+{
+  echo "Collect heapdump for Oracle shared pool issue."
+}
+
+coin_setup()
+{
+  echo "nothing to do" > /dev/null 2>&1
+}
+
+coin_main()
+{
+  execute $TIMEOUT "oradebug-heapdump2.sql" "" ""
+}
+
+coin_teardown()
+{
+  bdump=$(show_parameter "background_dump_dest")
+  udump=$(show_parameter "user_dump_dest")
+  collect ${bdump},${udump}
+}

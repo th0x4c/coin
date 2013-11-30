@@ -1,0 +1,61 @@
+#!/bin/sh
+
+COIN_HOME=$(dirname $0)/../
+COIN_HOME=$($COIN_HOME/libexec/coin-expand-path.sh $COIN_HOME)
+
+NODE=""
+
+usage()
+{
+  cat <<EOF
+Description:
+    Deploy Coin to multiple remote nodes
+
+Usage: coin-deploy -n <node>
+
+Option:
+    -n, --node <node>       Specify remote nodes to deploy (comma-delimited list)
+    -h, --help              Output help
+
+Example:
+    coin-deploy -n node1,node2      # deploy Coin to node1 and node2
+EOF
+}
+
+while [ $# -gt 0 ]
+do
+  case $1 in
+    -n|--node )
+      shift
+      if [ -n "$1" ]
+      then
+        NODE=$1
+        shift
+      fi
+      ;;
+    -h|--help )
+      usage
+      exit
+      ;;
+    * )
+      echo "Invalid option: $1"
+      usage
+      exit 1
+      break
+      ;;
+  esac
+done
+
+if [ -z "$NODE" ]
+then
+  echo "No node."
+  usage
+  exit
+fi
+
+coin_dir=$(dirname $COIN_HOME)
+for node in $(echo $NODE | sed 's/,/ /g')
+do
+  ssh $node "mkdir -p $coin_dir"
+  scp -rp $COIN_HOME ${node}:${coin_dir}
+done

@@ -1,0 +1,191 @@
+#!/bin/sh
+
+COIN_HOME=$(dirname $0)/../
+COIN_HOME=$($COIN_HOME/libexec/coin-expand-path.sh $COIN_HOME)
+
+LOG_DIR=$COIN_HOME/log/coin_log_$(date +%Y-%m-%dT%H.%M.%S)/
+LIBEXEC_DIR=$COIN_HOME/libexec/
+SQL_DIR=$COIN_HOME/sql/
+SCRIPT_DIR=$COIN_HOME/scripts/
+COMMAND_DIR=$COIN_HOME/command/
+TMP_DIR=$COIN_HOME/tmp/
+
+usage()
+{
+  cat <<EOF
+Description:
+    Start Coin to collect OS / DB information
+
+Usage: coin-start <command>
+
+Option:
+    -h, --help              Output help
+
+Command:
+EOF
+
+  for comm in $(ls $COMMAND_DIR)
+  do
+    . ${COMMAND_DIR}/${comm}
+    echo -e "    $comm \t $(coin_description)"
+  done
+
+  cat <<EOF
+
+Example:
+    coin-start hello    # start "hello" Coin command
+EOF
+}
+
+while [ $# -gt 0 ]
+do
+  case $1 in
+    -h|--help )
+      usage
+      exit
+      ;;
+    * )
+      break
+      ;;
+  esac
+done
+
+COMM=$1
+if [ -z "$COMM" ]
+then
+  echo "No command file."
+  usage
+  exit
+fi
+if [ ! -f "$COMMAND_DIR/$COMM" ]
+then
+  echo "No command file."
+  usage
+  exit
+fi
+
+if [ ! -d $LOG_DIR ]
+then
+  mkdir $LOG_DIR
+fi
+
+if [ ! -d $TMP_DIR ]
+then
+  TMP_DIR=/tmp
+fi
+
+LOGFILE=${LOG_DIR}/${COMM}.log
+
+. ${COMMAND_DIR}/${COMM}
+
+date_format()
+{
+  date +%Y%m%d%H%M.%S
+}
+
+sqlplus_version()
+{
+  sqlplus -V | cut -d" " -f3 | sed '/^$/d' | sed 's/\.//g'
+}
+
+show_parameter()
+{
+  local parameter=$1
+
+  sqlplus -S /nolog <<EOF
+  set feedback off
+  set pages 0
+  connect / as sysdba
+  select value from v\$parameter where upper(name) = upper('$parameter');
+EOF
+}
+
+execute()
+{
+  local timeout=$1
+  local script=$2
+  local opts=$3
+  local comment=$4
+  local logfile=""
+
+  if [ ! -f $(echo $script | cut -d" " -f1) ]
+  then
+    if [ "$($LIBEXEC_DIR/coin-extname.sh $script)" = "sql" ]
+    then
+      script=${SQL_DIR}/${script}
+    elif [ "$($LIBEXEC_DIR/coin-extname.sh $script)" = "sh" ]
+    then
+      script=${SCRIPT_DIR}/${script}
+    fi
+  fi
+
+  desc=$($LIBEXEC_DIR/coin-extname.sh -x $script)
+
+  if [ ! -d ${LOG_DIR}/${desc} ]
+  then
+    mkdir ${LOG_DIR}/${desc}
+  fi
+
+  logfile=${LOG_DIR}/${desc}/${desc}_$(date +%Y-%m-%dT%H.%M.%S).log
+
+  echo "$(date) Start $desc $comment"
+  $LIBEXEC_DIR/coin-hang-check.sh -t $timeout $LIBEXEC_DIR/coin-exec.sh -l $logfile $opts $script >> $LOGFILE
+  gzip $logfile
+  echo "$(date) Finish $desc $comment"
+}
+
+collect()
+{
+  local dirs=$1
+
+  $LIBEXEC_DIR/coin-find-file.sh -a $STARTDATE -o $LOG_DIR $(echo $dirs | sed 's/,/ /g') >> $LOGFILE
+}
+
+main()
+{
+  echo "$(date) Start collect info PID:$MYPID"
+
+  coin_setup
+
+  coin_main
+
+  coin_teardown
+
+  echo "$(date) Finish collect info. Log to $LOG_DIR"
+  remove_pid_file
+}
+
+main_tee()
+{
+  main 2>>$LOGFILE | tee -a $LOGFILE
+}
+
+signal_handler()
+{
+  coin_teardown
+  
+  echo "$(date) Cancel collect info. Log to $LOG_DIR"
+
+  $LIBEXEC_DIR/coin-pid.sh --follow --long --kill --pid $MAINPID >>$LOGFILE
+  remove_pid_file
+  exit
+}
+
+remove_pid_file()
+{
+  if [ -f $PIDFILE ]
+  then
+    rm $PIDFILE
+  fi
+}
+
+MYPID=$$
+PIDFILE=${TMP_DIR}/pid.${COMM}.${MYPID}
+touch $PIDFILE
+STARTDATE=$(date_format)
+trap "signal_handler 2>>$LOGFILE | tee -a $LOGFILE" 2 10 15
+
+# main 2>>$LOGFILE | tee -a $LOGFILE
+main_tee &
+MAINPID=$!
+wait

@@ -1,0 +1,114 @@
+#!/bin/sh
+
+COIN_HOME=$(dirname $0)/../
+COIN_HOME=$($COIN_HOME/libexec/coin-expand-path.sh $COIN_HOME)
+
+LOG_DIR=$COIN_HOME/log
+
+NODE=""
+LAST=0
+SRCDIR=""
+DSTDIR=""
+
+usage()
+{
+  cat <<EOF
+Description:
+    Copy Coin log files from multiple nodes to local
+
+Usage: coin-copy -n <node> [-l] <logdir> <destdir>
+
+Option:
+    -n, --node <node>       Target nodes
+    -l, --last              Copy only last log files
+    -h, --help              Output help
+
+Example:
+    coin-copy -n node1,node2 'coin_log_2013-11-23T14.*' ./      # copy log files on 2013-11-23 14:**:** from node1 and node2 to current directory on local
+    coin-copy -n node1,node2 -l 'coin*' ./                      # copy last log files from node1 and node2 to current directory on local
+    coin-copy -n node1,node2 'coin*' ./log                      # copy all log files from node1 and node2 to ./log on local
+
+EOF
+}
+
+last()
+{
+  local node=$1
+  local dir=$2
+  local src=$3
+
+  ssh $node "cd $dir; ls -dtr $src | tail -1"
+}
+
+while [ $# -gt 0 ]
+do
+  case $1 in
+    -n|--node )
+      shift
+      if [ -n "$1" ]
+      then
+        NODE=$1
+        shift
+      fi
+      ;;
+    -l|--last )
+      LAST=1
+      shift
+      ;;
+    -h|--help )
+      usage
+      exit
+      ;;
+    * )
+      break
+      ;;
+  esac
+done
+
+SRCDIR=$1
+DSTDIR=$2
+
+if [ -z "$DSTDIR" ]
+then
+  echo "No destination directory."
+  usage
+  exit
+fi
+
+DSTDIR=$($COIN_HOME/libexec/coin-expand-path.sh $DSTDIR)
+
+if [ ! -d $DSTDIR ]
+then
+  echo "Destination directory $DSTDIR does not exist."
+  usage
+  exit
+fi
+
+if [ -z "$NODE" ]
+then
+  echo "No node."
+  usage
+  exit
+fi
+
+for node in $(echo $NODE | sed 's/,/ /g')
+do
+  if [ ! -d ${DSTDIR}/${node} ]
+  then
+    mkdir ${DSTDIR}/${node}
+  fi
+
+  if [ $LAST -eq 1 ]
+  then
+    srcdir=$(last $node $LOG_DIR $SRCDIR)
+  else
+    srcdir=$SRCDIR
+  fi
+
+  scp -rp ${node}:${LOG_DIR}/${srcdir} ${DSTDIR}/${node}
+
+  if [ $? -ne 0 ]
+  then
+    rmdir ${DSTDIR}/${node}
+  fi
+done

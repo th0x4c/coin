@@ -1,0 +1,118 @@
+#!/bin/sh
+
+COIN_HOME=$(dirname $0)/../
+COIN_HOME=$($COIN_HOME/libexec/coin-expand-path.sh $COIN_HOME)
+
+LIBEXEC_DIR=$COIN_HOME/libexec/
+COMMAND_DIR=$COIN_HOME/command/
+TMP_DIR=$COIN_HOME/tmp/
+
+INTERACTIVE=0
+COMMAND=""
+
+usage()
+{
+  cat <<EOF
+Description:
+    Stop Coin that collects OS / DB information
+
+Usage: coin-stop [options] [<command>]
+
+Option:
+    -a, --all               Stop all running Coin command
+    -i, --interactive       Prompt before stop
+    -h, --help              Output help
+
+Command:
+EOF
+
+  for comm in $(ls $COMMAND_DIR)
+  do
+    . ${COMMAND_DIR}/${comm}
+    echo -e "    $comm \t $(coin_description)"
+  done
+
+  cat <<EOF
+
+Example:
+    coin-stop hello     # stop "hello" Coin command
+    coin-stop -a        # stop all running Coin command
+
+EOF
+}
+
+while [ $# -gt 0 ]
+do
+  case $1 in
+    -a|--all )
+      if [ -n "$1" ]
+      then
+        COMMAND="$(ls $COMMAND_DIR)"
+        shift
+      fi
+      ;;
+    -i|--interactive )
+      if [ -n "$1" ]
+      then
+        INTERACTIVE=1
+        shift
+      fi
+      ;;
+    -h|--help )
+      usage
+      exit
+      ;;
+    * )
+      break
+      ;;
+  esac
+done
+
+if [ -z "$COMMAND" ]
+then
+  COMMAND=$*
+fi
+if [ -z "$COMMAND" ]
+then
+  usage
+  exit
+fi
+
+for comm in $COMMAND
+do
+  for pidfile in $(find $TMP_DIR -name "pid.${comm}.*")
+  do
+    pid=$($LIBEXEC_DIR/coin-extname.sh  $pidfile)
+    $LIBEXEC_DIR/coin-pid.sh --long --pid $pid
+
+    yesno=""
+    if [ $INTERACTIVE -eq 1 ]
+    then
+      while [ "$yesno" != "yes" -a "$yesno" != "no" ]
+      do
+        echo "Are you sure to stop COMMAND:$comm PID:${pid}? (yes or no)"
+        read yesno
+        if [ "$yesno" != "yes" -a "$yesno" != "no" ]
+        then
+          echo "Please answer yes or no."
+        fi
+      done
+    else
+      yesno="yes"
+    fi
+    
+    if [ "$yesno" = "yes" ]
+    then
+      echo "Stop COMMAND:$comm PID:$pid"
+      kill $pid
+      if [ -z "$pidlist" ]
+      then
+        pidlist=$pid
+      else
+        pidlist="$pidlist,$pid"
+      fi
+    fi
+  done
+done
+
+$LIBEXEC_DIR/coin-pid.sh --wait --pid $pidlist

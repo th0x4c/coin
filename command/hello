@@ -1,0 +1,27 @@
+TIMEOUT=20
+INTERVAL=10
+COUNT=6
+
+coin_description()
+{
+  echo "Example command (Just say hello)."
+}
+
+coin_setup()
+{
+  echo "nothing to do" > /dev/null 2>&1
+}
+
+coin_main()
+{
+  while : 0
+  do
+    execute $TIMEOUT "coin-hello.sh"  "-i $INTERVAL -n $COUNT" "" &
+    sleep $(expr $INTERVAL \* $COUNT)
+  done
+}
+
+coin_teardown()
+{
+  echo "nothing to do" > /dev/null 2>&1
+}

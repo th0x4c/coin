@@ -1,0 +1,148 @@
+#!/bin/sh
+
+COIN_HOME=$(dirname $0)/../
+COIN_HOME=$($COIN_HOME/libexec/coin-expand-path.sh $COIN_HOME)
+
+COMMAND_DIR=$COIN_HOME/command/
+
+HELP=0
+NODE=""
+ACT=""
+
+usage()
+{
+  cat <<EOF
+Description:
+    Collect OS / DB information
+
+Usage: coin [options] <action> [<command>]
+
+Option:
+    -n, --node <node>  Specify remote nodes to deploy (comma-delimited list)
+    -h, --help         Output help
+
+Action:
+EOF
+
+  for act in $(action_list)
+  do
+    echo "    $act"
+  done
+
+  cat <<EOF
+
+For help on each action and its options use:
+    coin -h <action>
+
+Command:
+EOF
+
+  for comm in $(ls $COMMAND_DIR)
+  do
+    . ${COMMAND_DIR}/${comm}
+    echo -e "    $comm \t $(coin_description)"
+  done
+
+  cat <<EOF
+
+Example:
+    coin start hello    # start "hello" Coin command on local
+    coin list hello     # list running "hello" Coin command on local
+    coin -a list        # list all running Coin command on local
+    coin stop hello     # stop "hello" Coin command on local
+    coin -a stop        # stop all running Coin command on local
+
+    coin -n node1,node2 deploy                  # deploy Coin to node1 and node2
+    coin -n node1,node2 start hello             # start "hello" Coin command on node1 and node2
+    coin -n node1,node2 list hello              # list running "hello" Coin command on node1 and node2
+    coin -n node1,node2 -a list                 # list all running Coin command on node1 and node2
+    coin -n node1,node2 stop hello              # stop "hello" Coin command on node1 and node2
+    coin -n node1,node2 -a stop                 # stop all running Coin command on node1 and node2
+    coin -n node1,node2 -l copy 'coin*' ./      # copy last log files from node1 and node2 to current directory on local
+    coin -n node1,node2 copy 'coin*' ./log      # copy all log files from node1 and node2 to ./log on local
+    coin -n node1,node2 undeploy                # undeploy Coin from node1 and node2
+
+    coin -h stop    # output help on "stop" action
+EOF
+}
+
+action_list()
+{
+  ls ${COIN_HOME}/bin  | sed 's/coin//g' | cut -d"-" -f2
+}
+
+match_action()
+{
+  local arg=$1
+
+  for act in $(action_list)
+  do
+    echo $arg | grep -w "$act" >/dev/null
+    if [ $? -eq 0 ]
+    then
+      echo $act
+    fi
+  done
+}
+
+while [ $# -gt 0 ]
+do
+  case $1 in
+    -n|--node )
+      shift
+      if [ -n "$1" ]
+      then
+        NODE=$1
+        shift
+      fi
+      ;;
+    -h|--help )
+      HELP=1
+      shift
+      ;;
+    * )
+      break
+      ;;
+  esac
+done
+
+ARG=$@
+ACT=$(match_action "$ARG")
+if [ -z "$ACT" ]
+then
+  if [ $HELP -eq 0 ]
+  then
+    echo "No action."
+  fi
+  usage
+  exit
+fi
+act_arg=$(echo "$ARG" | sed 's/'${ACT}'//')
+if [ $HELP -eq 1 ]
+then
+  act_arg="-h $act_arg"
+fi
+
+case $ACT in
+  deploy|copy|undeploy )
+    if [ -n "$NODE" ]
+    then
+      act_arg="-n $NODE $act_arg"
+    fi
+
+    command="${COIN_HOME}/bin/coin-${ACT} $act_arg"
+    exec $command
+    ;;
+  * )
+    command="${COIN_HOME}/bin/coin-${ACT} $act_arg"
+    if [ -z "$NODE" -o $HELP -eq 1 ]
+    then
+      exec $command
+    else
+      for node in $(echo $NODE | sed 's/,/ /g')
+      do
+        ssh -f $node $command
+      done
+    fi
+    ;;
+esac
