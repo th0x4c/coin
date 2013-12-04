@@ -15,7 +15,7 @@ You can add your own "command" to collect information you want.
     Usage: coin [options] <action> [<command>]
 
     Option:
-        -n, --node <node>  Specify remote nodes to deploy (comma-delimited list)
+        -n, --node <node>  Remote nodes (comma-delimited list)
         -h, --help         Output help
 
     Action:
