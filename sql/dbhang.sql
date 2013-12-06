@@ -28,16 +28,20 @@
 @@dispatcher_rate.sql
 
 /* Additional */
-@@system_event.sql
--- @@session_event.sql
-@@sysstat.sql
-@@waitstat.sql
-@@librarycache.sql
-@@shared_pool_reserved.sql
-@@sgastat.sql
 @@cr_block_server.sql
-@@ges_traffic_controller.sql
+-- @ges_enqueue.sql
 @@ges_statistics.sql
+@@ges_traffic_controller.sql
+@@ksmss.sql
+@@librarycache.sql
+@@parameter.sql
+-- @@session_event.sql
+@@sgastat.sql
+@@shared_pool_reserved.sql
+@@system_event.sql
+@@sysstat.sql
+@@wait_chains.sql
+@@waitstat.sql
 
 /* for XA */
 @@dba_2pc_pending.sql
