@@ -31,6 +31,7 @@ You can add your own "command" to collect information you want.
 
     Command:
         dbhang       Collect diagnostic information for DB performance / hang issue.
+        dbstat       Collect DB statistics.
         heapdump     Collect heapdump for Oracle shared pool issue.
         hello        Example command (Just say hello).
         osstat       Collect OS statistics.

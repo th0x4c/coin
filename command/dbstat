@@ -1,0 +1,28 @@
+TIMEOUT=0
+INTERVAL=60
+COUNT=60
+
+coin_description()
+{
+  echo "Collect DB statistics."
+}
+
+coin_setup()
+{
+  echo "nothing to do" > /dev/null 2>&1
+}
+
+coin_main()
+{
+  while : 0
+  do
+    execute $TIMEOUT "dbstat.sql"        "-i $INTERVAL -n $COUNT" "" &
+    sleep $(expr $INTERVAL \* $COUNT)
+  done
+
+}
+
+coin_teardown()
+{
+  echo "nothing to do" > /dev/null 2>&1
+}
