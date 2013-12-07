@@ -1,0 +1,42 @@
+TIMEOUT=0
+INTERVAL=60
+COUNT=60
+
+coin_description()
+{
+  echo "Collect OS / DB statistics for DB benchmark test."
+}
+
+coin_setup()
+{
+  echo "nothing to do" > /dev/null 2>&1
+}
+
+coin_main()
+{
+  execute $TIMEOUT "awr_create_snapshot_rac.sql" "" ""
+
+  while : 0
+  do
+    execute $TIMEOUT "coin-iostat.sh"  "-i $INTERVAL -n $COUNT" "" &
+    execute $TIMEOUT "coin-mpstat.sh"  "-i $INTERVAL -n $COUNT" "" &
+    execute $TIMEOUT "coin-netstat.sh" "-i $INTERVAL -n $COUNT" "" &
+    execute $TIMEOUT "coin-ps-aux.sh"  "-i $INTERVAL -n $COUNT" "" &
+    execute $TIMEOUT "coin-ps-elf.sh"  "-i $INTERVAL -n $COUNT" "" &
+    execute $TIMEOUT "coin-top.sh"     "-i $INTERVAL -n $COUNT" "" &
+    execute $TIMEOUT "coin-vmstat.sh"  "-i $INTERVAL -n $COUNT" "" &
+    execute $TIMEOUT "dbstat.sql"      "-i $INTERVAL -n $COUNT" "" &
+
+    sleep $(expr $INTERVAL \* $COUNT)
+  done
+
+}
+
+coin_teardown()
+{
+  execute $TIMEOUT "awr_create_snapshot_report_text_rac.sql ${LOG_DIR}/awr_create_snapshot_report_text_rac $STARTDATE" "" ""
+
+  bdump=$(show_parameter "background_dump_dest")
+  udump=$(show_parameter "user_dump_dest")
+  collect ${bdump},${udump}
+}

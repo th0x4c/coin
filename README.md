@@ -30,6 +30,7 @@ You can add your own "command" to collect information you want.
         coin -h <action>
 
     Command:
+        dbbench      Collect OS / DB statistics for DB benchmark test.
         dbhang       Collect diagnostic information for DB performance / hang issue.
         dbstat       Collect DB statistics.
         heapdump     Collect heapdump for Oracle shared pool issue.
