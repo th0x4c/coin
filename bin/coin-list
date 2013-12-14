@@ -27,7 +27,7 @@ EOF
   for comm in $(ls $COMMAND_DIR)
   do
     . ${COMMAND_DIR}/${comm}
-    echo -e "    $comm \t $(coin_description)"
+    printf "    %s \t %s\n" $comm "$(coin_description)"
   done
 
   cat <<EOF
