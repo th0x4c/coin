@@ -5,6 +5,7 @@ SQL_FILE=""
 SCRIPT_FILE=""
 LOG_FILE=""
 INTERVAL=-1
+ALIGN_INTERVAL=0
 NSAMPLE=-1
 ORACLE_SID=$ORACLE_SID
 SQLPLUS_OPTS=""
@@ -24,6 +25,7 @@ Option:
     -s, --sid <oracle_sid>      Oracle SID
     -l, --log <logfile>         Log file
     -i, --interval <sec>        Interval in seconds
+    -A, --align_interval        Align interval from the beginning to the beginning of the next
     -n, --num_sample <num>      Number of samples
     -P, --prelim                SQL*Plus with prelim option
     -h, --help                  Output help
@@ -66,7 +68,7 @@ main_loop()
   local start_time=0
   local end_time=0
   local elapsed_time=0
-  local sleep_interval=0
+  local sleep_interval=$INTERVAL
 
   $setup
 
@@ -74,7 +76,10 @@ main_loop()
   do
     if [ $n -ne 0 ]
     then
-      sleep_interval=$(expr $INTERVAL - $elapsed_time)
+      if [ $ALIGN_INTERVAL -eq 1 ]
+      then
+        sleep_interval=$(expr $INTERVAL - $elapsed_time)
+      fi
       if [ $sleep_interval -gt 0 ]
       then
         sleep $sleep_interval
@@ -132,6 +137,10 @@ do
         INTERVAL=$1
         shift
       fi
+      ;;
+    -A|--align_interval )
+      ALIGN_INTERVAL=1
+      shift
       ;;
     -n|--num_sample )
       shift
