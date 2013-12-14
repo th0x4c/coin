@@ -63,6 +63,10 @@ main_loop()
   local setup=$2
   local teardown=$3
   local n=0
+  local start_time=0
+  local end_time=0
+  local elapsed_time=0
+  local sleep_interval=0
 
   $setup
 
@@ -70,10 +74,17 @@ main_loop()
   do
     if [ $n -ne 0 ]
     then
-      sleep $INTERVAL
+      sleep_interval=$(expr $INTERVAL - $elapsed_time)
+      if [ $sleep_interval -gt 0 ]
+      then
+        sleep $sleep_interval
+      fi
     fi
 
+    start_time=$(date +%s)
     $main
+    end_time=$(date +%s)
+    elapsed_time=$(expr $end_time - $start_time)
 
     n=$(expr $n + 1)
 
