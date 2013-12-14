@@ -3,6 +3,7 @@
 COIN_HOME=$(dirname $0)/../
 COIN_HOME=$($COIN_HOME/libexec/coin-expand-path.sh $COIN_HOME)
 
+LIBEXEC_DIR=$COIN_HOME/libexec/
 COMMAND_DIR=$COIN_HOME/command/
 
 HELP=0
@@ -135,14 +136,31 @@ case $ACT in
     ;;
   * )
     command="${COIN_HOME}/bin/coin-${ACT} $act_arg"
+
     if [ -z "$NODE" -o $HELP -eq 1 ]
     then
       exec $command
-    else
-      for node in $(echo $NODE | sed 's/,/ /g')
-      do
-        ssh -f $node $command
-      done
+    fi
+
+    pidlist_before=$($LIBEXEC_DIR/coin-pid.sh $command)
+    for node in $(echo $NODE | sed 's/,/ /g')
+    do
+      ssh -f $node $command
+    done
+    pidlist_after=$($LIBEXEC_DIR/coin-pid.sh $command)
+
+    for pid in $pidlist_after
+    do
+      if [ -z "$(echo $pidlist_before | grep -w $pid)" ]
+      then
+        command_pidlist="$pid $command_pidlist"
+      fi
+    done
+    command_pidlist=$(echo $command_pidlist | sed 's/ /,/g')
+
+    if [ -n "$command_pidlist" ]
+    then
+      $LIBEXEC_DIR/coin-pid.sh --wait --pid $command_pidlist
     fi
     ;;
 esac
