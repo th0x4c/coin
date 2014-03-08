@@ -8,6 +8,7 @@ COMMAND_DIR=$COIN_HOME/command/
 
 HELP=0
 NODE=""
+OS_USER=""
 ACT=""
 
 usage()
@@ -20,6 +21,7 @@ Usage: coin [options] <action> [<command>]
 
 Option:
     -n, --node <node>  Remote nodes (comma-delimited list)
+    -u, --user <user>  OS user to log in as on the remote node
     -h, --help         Output help
 
 Action:
@@ -86,6 +88,18 @@ match_action()
   done
 }
 
+node_with_user()
+{
+  local node=$1
+
+  if [ -n "$OS_USER" ]
+  then
+    echo "${OS_USER}@$node" | sed 's/,/,'$OS_USER'@/g'
+  else
+    echo $node
+  fi
+}
+
 while [ $# -gt 0 ]
 do
   case $1 in
@@ -94,6 +108,14 @@ do
       if [ -n "$1" ]
       then
         NODE=$1
+        shift
+      fi
+      ;;
+    -u|--user )
+      shift
+      if [ -n "$1" ]
+      then
+        OS_USER=$1
         shift
       fi
       ;;
@@ -128,7 +150,7 @@ case $ACT in
   deploy|copy|undeploy )
     if [ -n "$NODE" ]
     then
-      act_arg="-n $NODE $act_arg"
+      act_arg="-n $(node_with_user $NODE) $act_arg"
     fi
 
     command="${COIN_HOME}/bin/coin-${ACT} $act_arg"
@@ -145,7 +167,7 @@ case $ACT in
     pidlist_before=$($LIBEXEC_DIR/coin-pid.sh $command)
     for node in $(echo $NODE | sed 's/,/ /g')
     do
-      ssh -f $node $command
+      ssh -f $(node_with_user $node) $command
     done
     pidlist_after=$($LIBEXEC_DIR/coin-pid.sh $command)
 
