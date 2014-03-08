@@ -3,9 +3,8 @@
 COIN_HOME=$(dirname $0)/../
 COIN_HOME=$($COIN_HOME/libexec/coin-expand-path.sh $COIN_HOME)
 
-LOG_DIR=$COIN_HOME/log
-
 NODE=""
+REMOTE_COIN_HOME=$COIN_HOME
 LAST=0
 SRCDIR=""
 DSTDIR=""
@@ -20,6 +19,7 @@ Usage: coin-copy -n <node> [-l] <logdir> <destdir>
 
 Option:
     -n, --node <node>       Target nodes
+    -d, --directory <dir>   Deployment directory on the remote node (Default: $COIN_HOME)
     -l, --last              Copy only last log files
     -h, --help              Output help
 
@@ -48,6 +48,14 @@ do
       if [ -n "$1" ]
       then
         NODE=$1
+        shift
+      fi
+      ;;
+    -d|--directory )
+      shift
+      if [ -n "$1" ]
+      then
+        REMOTE_COIN_HOME=$1
         shift
       fi
       ;;
@@ -90,6 +98,8 @@ then
   usage
   exit
 fi
+
+LOG_DIR=$REMOTE_COIN_HOME/log
 
 for node in $(echo $NODE | sed 's/,/ /g')
 do

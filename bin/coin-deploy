@@ -4,6 +4,7 @@ COIN_HOME=$(dirname $0)/../
 COIN_HOME=$($COIN_HOME/libexec/coin-expand-path.sh $COIN_HOME)
 
 NODE=""
+REMOTE_COIN_HOME=$COIN_HOME
 
 usage()
 {
@@ -15,6 +16,7 @@ Usage: coin-deploy -n <node>
 
 Option:
     -n, --node <node>       Specify remote nodes to deploy (comma-delimited list)
+    -d, --directory <dir>   Deployment directory on the remote node (Default: $COIN_HOME)
     -h, --help              Output help
 
 Example:
@@ -30,6 +32,14 @@ do
       if [ -n "$1" ]
       then
         NODE=$1
+        shift
+      fi
+      ;;
+    -d|--directory )
+      shift
+      if [ -n "$1" ]
+      then
+        REMOTE_COIN_HOME=$1
         shift
       fi
       ;;
@@ -53,7 +63,14 @@ then
   exit
 fi
 
-coin_dir=$(dirname $COIN_HOME)
+if [ $(basename $REMOTE_COIN_HOME) != "coin" ]
+then
+  echo "Base of the deployment directory must be \"coin\"."
+  usage
+  exit
+fi
+
+coin_dir=$(dirname $REMOTE_COIN_HOME)
 for node in $(echo $NODE | sed 's/,/ /g')
 do
   ssh $node "mkdir -p $coin_dir"

@@ -9,6 +9,7 @@ COMMAND_DIR=$COIN_HOME/command/
 HELP=0
 NODE=""
 OS_USER=""
+REMOTE_COIN_HOME=$COIN_HOME
 ACT=""
 
 usage()
@@ -20,9 +21,10 @@ Description:
 Usage: coin [options] <action> [<command>]
 
 Option:
-    -n, --node <node>  Remote nodes (comma-delimited list)
-    -u, --user <user>  OS user to log in as on the remote node
-    -h, --help         Output help
+    -n, --node <node>       Remote nodes (comma-delimited list)
+    -d, --directory <dir>   Deployment directory on the remote node
+    -u, --user <user>       OS user to log in as on the remote node
+    -h, --help              Output help
 
 Action:
 EOF
@@ -111,6 +113,14 @@ do
         shift
       fi
       ;;
+    -d|--directory )
+      shift
+      if [ -n "$1" ]
+      then
+        REMOTE_COIN_HOME=$1
+        shift
+      fi
+      ;;
     -u|--user )
       shift
       if [ -n "$1" ]
@@ -150,14 +160,14 @@ case $ACT in
   deploy|copy|undeploy )
     if [ -n "$NODE" ]
     then
-      act_arg="-n $(node_with_user $NODE) $act_arg"
+      act_arg="-n $(node_with_user $NODE) -d $REMOTE_COIN_HOME $act_arg"
     fi
 
     command="${COIN_HOME}/bin/coin-${ACT} $act_arg"
     exec $command
     ;;
   * )
-    command="${COIN_HOME}/bin/coin-${ACT} $act_arg"
+    command="${REMOTE_COIN_HOME}/bin/coin-${ACT} $act_arg"
 
     if [ -z "$NODE" -o $HELP -eq 1 ]
     then
