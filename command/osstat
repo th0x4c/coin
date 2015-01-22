@@ -23,6 +23,7 @@ coin_main()
     execute $TIMEOUT "coin-ps-elf.sh"  "-i $INTERVAL -n $COUNT" "" &
     execute $TIMEOUT "coin-top.sh"     "-i $INTERVAL -n $COUNT" "" &
     execute $TIMEOUT "coin-vmstat.sh"  "-i $INTERVAL -n $COUNT" "" &
+    execute $TIMEOUT "coin-meminfo.sh" "-i $INTERVAL -n $COUNT" "" &
     sleep $(expr $INTERVAL \* $COUNT)
   done
 }
