@@ -19,7 +19,7 @@ case $(uname) in
   HP-UX)
     HEADER="%usr"
     sar -A -S 1 2 > $TEMP_FILE
-    lines=$(wc -l $TEMP_FILE | cut -d" " -f1)    
+    lines=$(wc -l $TEMP_FILE | cut -d" " -f1)
     foot=$lines
     ;;
   *)

@@ -100,7 +100,7 @@ do
     else
       yesno="yes"
     fi
-    
+
     if [ "$yesno" = "yes" ]
     then
       echo "Stop COMMAND:$comm PID:$pid"

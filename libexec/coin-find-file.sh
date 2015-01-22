@@ -107,7 +107,7 @@ copy_target()
 {
   local targetfile=$1
   local dir=$(fulldirname $targetfile)
-  
+
   if [ ! -d $OUTPUT_DIR/$dir ]
   then
     mkdir -p $OUTPUT_DIR/$dir
