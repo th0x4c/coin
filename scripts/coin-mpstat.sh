@@ -1,32 +1,21 @@
 #!/bin/sh
 
-TEMP_DIR=$(dirname $0)/../tmp
-if [ ! -d $TEMP_DIR ]
-then
-  TEMP_DIR=/tmp
-fi
-TEMP_FILE=$TEMP_DIR/coin-mpstat.$$
-
-case $(uname) in
-  Linux)
-    HEADER="CPU"
-    mpstat -P ALL 1 2 > $TEMP_FILE
-    head=$(grep -n -E "$HEADER" $TEMP_FILE | cut -d":" -f1 | tail -2 | head -1)
-    foot=$(grep -n -E "$HEADER" $TEMP_FILE | cut -d":" -f1 | tail -1)
-    foot=$(expr $foot - 1)
-    lines=$(expr $foot - $head + 1)
-    ;;
-  HP-UX)
-    HEADER="%usr"
-    sar -A -S 1 2 > $TEMP_FILE
-    lines=$(wc -l $TEMP_FILE | cut -d" " -f1)
-    foot=$lines
-    ;;
-  *)
-    ;;
-esac
+LANG=C
+CNAME="MPSTAT"
 
 now=$(date +%Y-%m-%dT%H:%M:%S)
-echo "MPSTAT $now [INFO] Start"
-head -n $foot $TEMP_FILE | tail -n $lines | awk '{print "MPSTAT '$now'", $0}'
-rm $TEMP_FILE
+echo "$CNAME $now [INFO] Start"
+
+COMMAND="mpstat -P ALL $@"
+$COMMAND | awk 'BEGIN{date = strftime("%Y-%m-%d"); \
+                      split(strftime("%H:%M:%S"), timestamp, ":");} \
+                /^[012][0-9]:[0-9][0-9]:[0-9][0-9]/{date = strftime("%Y-%m-%d"); \
+                                                    split($1, timestamp, ":"); \
+                                                    if ($3 == "PM") {timestamp[1] += 12}; \
+                                                    if ($3 == "AM" && timestamp[1] == 12) {timestamp[1] = 0}} \
+                {printf("'$CNAME' %sT%02d:%02d:%02d %s\n", date, \
+                                                           timestamp[1], \
+                                                           timestamp[2], \
+                                                           timestamp[3], \
+                                                           $0); \
+                 system("");}'

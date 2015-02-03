@@ -25,7 +25,7 @@ coin_main()
       sleep $INTERVAL
     fi
 
-    execute $TIMEOUT "coin-top.sh"                 ""        "$cnt / $COUNT"
+    execute $TIMEOUT "coin-top.sh 0 1"             ""        "$cnt / $COUNT"
     execute $TIMEOUT "coin-ps-elf.sh"              ""        "$cnt / $COUNT"
     execute $TIMEOUT "dbhang.sql"                  ""        "$cnt / $COUNT"
     execute $TIMEOUT "oradebug-systemstate266.sql" "$PRELIM" "$cnt / $COUNT"

@@ -18,15 +18,15 @@ coin_main()
 
   while : 0
   do
-    execute $TIMEOUT "coin-iostat.sh"  "-i $INTERVAL -n $COUNT" "" &
-    execute $TIMEOUT "coin-mpstat.sh"  "-i $INTERVAL -n $COUNT" "" &
-    execute $TIMEOUT "coin-netstat.sh" "-i $INTERVAL -n $COUNT" "" &
-    execute $TIMEOUT "coin-ps-aux.sh"  "-i $INTERVAL -n $COUNT" "" &
-    execute $TIMEOUT "coin-ps-elf.sh"  "-i $INTERVAL -n $COUNT" "" &
-    execute $TIMEOUT "coin-top.sh"     "-i $INTERVAL -n $COUNT" "" &
-    execute $TIMEOUT "coin-vmstat.sh"  "-i $INTERVAL -n $COUNT" "" &
-    execute $TIMEOUT "coin-meminfo.sh" "-i $INTERVAL -n $COUNT" "" &
-    execute $TIMEOUT "dbstat.sql"      "-i $INTERVAL -n $COUNT" "" &
+    execute $TIMEOUT "coin-iostat.sh $INTERVAL $COUNT"  ""                       "" &
+    execute $TIMEOUT "coin-mpstat.sh $INTERVAL $COUNT"  ""                       "" &
+    execute $TIMEOUT "coin-netstat.sh"                  "-i $INTERVAL -n $COUNT" "" &
+    execute $TIMEOUT "coin-ps-aux.sh"                   "-i $INTERVAL -n $COUNT" "" &
+    execute $TIMEOUT "coin-ps-elf.sh"                   "-i $INTERVAL -n $COUNT" "" &
+    execute $TIMEOUT "coin-top.sh $INTERVAL $COUNT"     ""                       "" &
+    execute $TIMEOUT "coin-vmstat.sh $INTERVAL $COUNT"  ""                       "" &
+    execute $TIMEOUT "coin-meminfo.sh"                  "-i $INTERVAL -n $COUNT" "" &
+    execute $TIMEOUT "dbstat.sql"                       "-i $INTERVAL -n $COUNT" "" &
 
     sleep $(expr $INTERVAL \* $COUNT)
   done

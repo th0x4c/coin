@@ -1,31 +1,33 @@
 #!/bin/sh
 
-TEMP_DIR=$(dirname $0)/../tmp
-if [ ! -d $TEMP_DIR ]
+LANG=C
+CNAME="TOP"
+
+OPT_DELAY=""
+OPT_COUNT=""
+
+if [ -n "$1" ]
 then
-  TEMP_DIR=/tmp
+  OPT_DELAY="-d $1"
 fi
-TEMP_FILE=$TEMP_DIR/coin-top.$$
-
-case $(uname) in
-  Linux)
-    HEADER="top -"
-    top -b -c -n 2 -d 1 | sed 's/ *$//' > $TEMP_FILE
-    ;;
-  HP-UX)
-    HEADER="System:"
-    top -d 2 -s 1 -f $TEMP_FILE
-    ;;
-  *)
-    ;;
-esac
-
-lines=$(wc -l $TEMP_FILE | cut -d" " -f1)
-head=$(grep -n -E "^$HEADER" $TEMP_FILE | cut -d":" -f1 | tail -1)
-lines=$(expr $lines - $head + 1)
+if [ -n "$2" ]
+then
+  OPT_COUNT="-n $2"
+fi
 
 now=$(date +%Y-%m-%dT%H:%M:%S)
-echo "TOP $now [INFO] Start"
-tail -n $lines $TEMP_FILE | awk '{print "TOP '$now'", $0}'
-rm $TEMP_FILE
+echo "$CNAME $now [INFO] Start"
+
+COMMAND="top -b -c $OPT_DELAY $OPT_COUNT"
+$COMMAND | awk 'BEGIN{date = strftime("%Y-%m-%d"); \
+                      split(strftime("%H:%M:%S"), timestamp, ":");} \
+                /^top - [012][0-9]:[0-9][0-9]:[0-9][0-9]/{date = strftime("%Y-%m-%d"); \
+                                                          split($3, timestamp, ":");} \
+                {printf("'$CNAME' %sT%02d:%02d:%02d %s\n", date, \
+                                                           timestamp[1], \
+                                                           timestamp[2], \
+                                                           timestamp[3], \
+                                                           $0); \
+                 system("");}' \
+         | sed 's/ *$//'
 
