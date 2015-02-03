@@ -130,6 +130,7 @@ sub parse_line_sysstat
 
   return if $#values + 1 < column_count($config) + 2;
   return if defined($config->{header_regex}) && $_ =~ /$config->{header_regex}/;
+  return if $values[0] eq "MPSTAT" && $values[2] eq "Average:";
 
   return sprintf(row_format($config), @values[-(column_count($config))..-1]);
 }
