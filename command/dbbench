@@ -40,4 +40,11 @@ coin_teardown()
   bdump=$(show_parameter "background_dump_dest")
   udump=$(show_parameter "user_dump_dest")
   collect ${bdump},${udump}
+
+  mkdir ${LOG_DIR}/osstat
+  ${SCRIPT_DIR}/coin-reformat.pl ${LOG_DIR}/coin-iostat/*  \
+                                 ${LOG_DIR}/coin-meminfo/* \
+                                 ${LOG_DIR}/coin-mpstat/*  \
+                                 ${LOG_DIR}/coin-netstat/* \
+                                 > ${LOG_DIR}/osstat/osstat.log
 }
