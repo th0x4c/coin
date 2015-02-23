@@ -16,7 +16,7 @@ coin_main()
 {
   while : 0
   do
-    execute $TIMEOUT "coin-iostat.sh $INTERVAL $COUNT"  ""                       "" &
+    execute $TIMEOUT "coin-iostat.sh --no-first-report $INTERVAL $(expr $COUNT + 1)" "" "" &
     execute $TIMEOUT "coin-mpstat.sh $INTERVAL $COUNT"  ""                       "" &
     execute $TIMEOUT "coin-netstat.sh"                  "-i $INTERVAL -n $COUNT" "" &
     execute $TIMEOUT "coin-ps-aux.sh"                   "-i $INTERVAL -n $COUNT" "" &
