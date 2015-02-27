@@ -16,6 +16,9 @@ coin_main()
 {
   execute $TIMEOUT "awr_create_snapshot_rac.sql" "" ""
 
+  asm_oracle_sid=$(${LIBEXEC_DIR}/coin-orainfo.sh -n -S asm)
+  asm_oracle_home=$(${LIBEXEC_DIR}/coin-orainfo.sh -n -H asm)
+
   while : 0
   do
     execute $TIMEOUT "coin-iostat.sh --no-first-report $INTERVAL $(expr $COUNT + 1)" "" "" &
@@ -27,6 +30,10 @@ coin_main()
     execute $TIMEOUT "coin-vmstat.sh $INTERVAL $COUNT"  ""                       "" &
     execute $TIMEOUT "coin-meminfo.sh"                  "-i $INTERVAL -n $COUNT" "" &
     execute $TIMEOUT "dbstat.sql"                       "-i $INTERVAL -n $COUNT" "" &
+    if [ -n "$asm_oracle_sid" ]
+    then
+      execute $TIMEOUT "asmstat.sql" "-i $INTERVAL -n $COUNT -S $asm_oracle_sid -H $asm_oracle_home" "" &
+    fi
 
     sleep $(expr $INTERVAL \* $COUNT)
   done
@@ -40,6 +47,18 @@ coin_teardown()
   bdump=$(show_parameter "background_dump_dest")
   udump=$(show_parameter "user_dump_dest")
   collect ${bdump},${udump}
+
+  asm_alert=$(${LIBEXEC_DIR}/coin-orainfo.sh -n -A asm)
+  if [ -n "$asm_alert" ]
+  then
+    asm_bdump=$(dirname $asm_alert)
+    collect $asm_bdump
+  fi
+  grid_alert=$(${LIBEXEC_DIR}/coin-orainfo.sh -n -A grid)
+  if [ -n "$grid_alert" ]
+  then
+    collect $grid_alert
+  fi
 
   mkdir ${LOG_DIR}/osstat
   ${SCRIPT_DIR}/coin-reformat.pl ${LOG_DIR}/coin-iostat/*  \
