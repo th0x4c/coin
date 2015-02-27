@@ -8,6 +8,7 @@ INTERVAL=-1
 ALIGN_INTERVAL=0
 NSAMPLE=-1
 ORACLE_SID=$ORACLE_SID
+ORACLE_HOME=$ORACLE_HOME
 SQLPLUS_OPTS=""
 
 LIBEXEC_DIR=$(dirname $0)
@@ -23,6 +24,7 @@ Usage: coin-exec.sh [options] <sqlfile>|<scriptfile>
 Option:
     -c, --connect <string>      Connection string (Default: '/as sysdba')
     -s, --sid <oracle_sid>      Oracle SID
+    -H, --home <oracle_home>    ORACLE_HOME
     -l, --log <logfile>         Log file
     -i, --interval <sec>        Interval in seconds
     -A, --align_interval        Align interval from the beginning to the beginning of the next
@@ -119,6 +121,15 @@ do
       then
         ORACLE_SID=$1
         export ORACLE_SID
+        shift
+      fi
+      ;;
+    -H|--home )
+      shift
+      if [ -n "$1" ]
+      then
+        ORACLE_HOME=$1
+        export ORACLE_HOME
         shift
       fi
       ;;
