@@ -23,7 +23,7 @@ Usage: coin-exec.sh [options] <sqlfile>|<scriptfile>
 
 Option:
     -c, --connect <string>      Connection string (Default: '/as sysdba')
-    -s, --sid <oracle_sid>      Oracle SID
+    -S, --sid <oracle_sid>      Oracle SID
     -H, --home <oracle_home>    ORACLE_HOME
     -l, --log <logfile>         Log file
     -i, --interval <sec>        Interval in seconds
@@ -115,7 +115,7 @@ do
         shift
       fi
       ;;
-    -s|--sid )
+    -S|--sid )
       shift
       if [ -n "$1" ]
       then
