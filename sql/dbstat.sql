@@ -35,6 +35,7 @@
 @@asm_diskgroup_stat.sql
 @@asm_disk_iostat.sql
 @@asm_disk_stat.sql
+-- @@asm_operation.sql
 @@asm_volume_stat.sql
 @@buffer_pool_statistics.sql
 -- @@cell_state.sql

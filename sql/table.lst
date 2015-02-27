@@ -1,6 +1,7 @@
 v$asm_diskgroup_stat
 v$asm_disk_iostat
 v$asm_disk_stat
+v$asm_operation
 v$asm_volume_stat
 v$bgprocess
 v$buffer_pool_statistics
