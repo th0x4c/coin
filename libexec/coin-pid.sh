@@ -7,6 +7,7 @@ KILL=0
 SIGNAL=15 # SIGTERM
 PIDLIST=""
 WAIT=0
+EXCLUDE_COMM=""
 
 # "env UNIX95= " for HP-UX
 PS="env UNIX95= ps"
@@ -26,6 +27,7 @@ Option:
     -s, --signal <signal>       Use the specified signal instead of SIGTERM
     -p, --pid <pidlist>         Select by PID (comma-delimited list)
     -w, --wait                  Wait processes
+    -X, --exclude <comm>        Exclude processes based upon the specified command
     -h, --help                  Output help
 
 Example:
@@ -46,6 +48,27 @@ wait_process()
   do
     sleep 1
   done
+}
+
+list_process()
+{
+  local command=$1
+
+  $PS -e -o pid,ppid,args | grep "$command" | grep -v "grep $command" | awk '$1 != '$MYPID' && $2 != '$MYPID'{print $1}'
+}
+
+exclude_from()
+{
+  local from_list=$1
+  local exclude_list=$2
+  local ret_list=$from_list
+
+  for item in $exclude_list
+  do
+    ret_list=$(echo $ret_list | sed 's/\b'$item'\b//g')
+  done
+
+  echo $ret_list
 }
 
 while [ $# -gt 0 ]
@@ -83,6 +106,14 @@ do
       WAIT=1
       shift
       ;;
+    -X|--exclude )
+      shift
+      if [ -n "$1" ]
+      then
+        EXCLUDE_COMM=$1
+        shift
+      fi
+      ;;
     -h|--help )
       usage
       exit
@@ -101,11 +132,11 @@ then
   exit
 fi
 
-mypid=$$
+MYPID=$$
 
 if [ -z "$PIDLIST" ]
 then
-  pid_list=$($PS -e -o pid,ppid,args | grep "$COMMAND" | grep -v "grep $COMMAND" | awk '$1 != '$mypid' && $2 != '$mypid'{print $1}')
+  pid_list=$(list_process "$COMMAND")
 else
   pid_list=$(echo $PIDLIST | sed 's/,/ /g')
 fi
@@ -127,12 +158,18 @@ then
   done
 fi
 
+if [ -n "$EXCLUDE_COMM" ]
+then
+  exclude_pid_list=$(list_process "$EXCLUDE_COMM")
+  pid_list=$(exclude_from "$pid_list" "$exclude_pid_list")
+fi
+
 if [ -z "$pid_list" ]
 then
   exit
 fi
 
-pid_list=$(echo $pid_list | sed 's/ '$mypid'/ /g')
+pid_list=$(exclude_from "$pid_list" $MYPID)
 pid_csv_list=$(echo $pid_list | sed 's/ /,/g')
 
 if [ $LONG -eq 0 ]
