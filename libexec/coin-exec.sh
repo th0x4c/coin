@@ -10,6 +10,7 @@ NSAMPLE=-1
 ORACLE_SID=$ORACLE_SID
 ORACLE_HOME=$ORACLE_HOME
 SQLPLUS_OPTS=""
+GZIP=0
 
 LIBEXEC_DIR=$(dirname $0)
 
@@ -30,6 +31,7 @@ Option:
     -A, --align_interval        Align interval from the beginning to the beginning of the next
     -n, --num_sample <num>      Number of samples
     -P, --prelim                SQL*Plus with prelim option
+    -z, --gzip                  Compress the log file by gzip
     -h, --help                  Output help
 
 Example:
@@ -165,6 +167,10 @@ do
       SQLPLUS_OPTS="-prelim"
       shift
       ;;
+    -z|--gzip )
+      GZIP=1
+      shift
+      ;;
     -h|--help )
       usage
       exit
@@ -198,13 +204,18 @@ then
   fi
 fi
 
-trap "$LIBEXEC_DIR/coin-pid.sh --follow --long --kill --signal 9 --pid $$ > /dev/null; exit" 2 10 15
+trap "$LIBEXEC_DIR/coin-pid.sh --follow --long --kill --signal 9 --pid $$ --exclude gzip > /dev/null; exit" 2 10 15
 
 if [ -n "$SQL_FILE" -a -z "$SCRIPT_FILE" ]
 then
   if [ -n "$LOG_FILE" ]
   then
-    main_loop sql_main sql_setup sql_teardown | sqlplus $SQLPLUS_OPTS /nolog > $LOG_FILE &
+    if [ $GZIP -eq 1 ]
+    then
+      main_loop sql_main sql_setup sql_teardown | sqlplus $SQLPLUS_OPTS /nolog | gzip -c > $LOG_FILE &
+    else
+      main_loop sql_main sql_setup sql_teardown | sqlplus $SQLPLUS_OPTS /nolog > $LOG_FILE &
+    fi
   else
     main_loop sql_main sql_setup sql_teardown | sqlplus $SQLPLUS_OPTS /nolog &
   fi
@@ -212,7 +223,12 @@ elif [ -z "$SQL_FILE" -a -n "$SCRIPT_FILE" ]
 then
   if [ -n "$LOG_FILE" ]
   then
-    main_loop script_main "" "" > $LOG_FILE &
+    if [ $GZIP -eq 1 ]
+    then
+      main_loop script_main "" "" | gzip -c > $LOG_FILE &
+    else
+      main_loop script_main "" "" > $LOG_FILE &
+    fi
   else
     main_loop script_main "" "" &
   fi
