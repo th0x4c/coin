@@ -126,11 +126,10 @@ execute()
     mkdir ${LOG_DIR}/${desc}
   fi
 
-  logfile=${LOG_DIR}/${desc}/${desc}_$(date +%Y-%m-%dT%H.%M.%S).log
+  logfile=${LOG_DIR}/${desc}/${desc}_$(date +%Y-%m-%dT%H.%M.%S).log.gz
 
   echo "$(date) Start $desc $comment"
-  $LIBEXEC_DIR/coin-hang-check.sh -t $timeout $LIBEXEC_DIR/coin-exec.sh -l $logfile $opts $script >> $LOGFILE
-  gzip $logfile
+  $LIBEXEC_DIR/coin-hang-check.sh -t $timeout $LIBEXEC_DIR/coin-exec.sh -z -l $logfile $opts $script >> $LOGFILE
   echo "$(date) Finish $desc $comment"
 }
 
@@ -166,7 +165,7 @@ signal_handler()
 
   echo "$(date) Cancel collect info. Log to $LOG_DIR"
 
-  $LIBEXEC_DIR/coin-pid.sh --follow --long --kill --pid $MAINPID >>$LOGFILE
+  $LIBEXEC_DIR/coin-pid.sh --follow --long --kill --pid $MAINPID --exclude gzip >>$LOGFILE
   remove_pid_file
   exit
 }
