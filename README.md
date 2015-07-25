@@ -16,6 +16,7 @@ You can add your own "command" to collect information you want.
 
     Option:
         -n, --node <node>       Remote nodes (comma-delimited list)
+        -g, --group <file>      File containing a list of remote nodes
         -d, --directory <dir>   Deployment directory on the remote node
         -u, --user <user>       OS user to log in as on the remote node
         -h, --help              Output help
