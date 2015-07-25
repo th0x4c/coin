@@ -161,11 +161,11 @@ main_tee()
 
 signal_handler()
 {
+  $LIBEXEC_DIR/coin-pid.sh --follow --long --kill --pid $MAINPID --exclude gzip >>$LOGFILE
+
   coin_teardown
 
   echo "$(date) Cancel collect info. Log to $LOG_DIR"
-
-  $LIBEXEC_DIR/coin-pid.sh --follow --long --kill --pid $MAINPID --exclude gzip >>$LOGFILE
   remove_pid_file
   exit
 }
