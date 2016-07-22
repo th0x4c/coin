@@ -47,12 +47,12 @@ show_grid_sid()
 
 show_db_home()
 {
-  grep -v "^\#" /etc/oratab | grep -v "^\$" | grep -v "^+ASM" | grep -v "^\*" | cut -d":" -f2  | uniq
+  grep -v "^\#" /etc/oratab 2>/dev/null | grep -v "^\$" | grep -v "^+ASM" | grep -v "^\*" | cut -d":" -f2  | uniq
 }
 
 show_asm_home()
 {
-  grep "^+ASM" /etc/oratab | cut -d":" -f2  | uniq
+  grep "^+ASM" /etc/oratab 2>/dev/null | cut -d":" -f2  | uniq
 }
 
 show_grid_home()
