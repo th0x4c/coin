@@ -121,6 +121,13 @@ do
     srcdir=$SRCDIR
   fi
 
+  if [ -z "$srcdir" ]
+  then
+    echo "No such file or directory."
+    usage
+    exit
+  fi
+
   scp -rp ${node}:${LOG_DIR}/${srcdir} ${DSTDIR}/${node}
   scp_exit_status=$?
 
