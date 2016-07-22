@@ -116,7 +116,7 @@ do
 
   if [ $LAST -eq 1 ]
   then
-    srcdir=$(last $node $LOG_DIR $SRCDIR)
+    srcdir=$(last $node $LOG_DIR "$SRCDIR")
   else
     srcdir=$SRCDIR
   fi

@@ -183,7 +183,16 @@ case $ACT in
     fi
 
     command="${COIN_HOME}/bin/coin-${ACT} $act_arg"
-    exec $command
+
+    if [ "$ACT" = "copy" ]
+    then
+      # Do not expand glob pattern('*') to pathname
+      logdir=$(echo "$command" | awk '{print $(NF-1)}')
+      destdir=$(echo "$command" | awk '{print $NF}')
+      exec $(echo "$command" |  awk '{$NF=""; $(NF-1)=""; print}') "$logdir" $destdir
+    else
+      exec $command
+    fi
     ;;
   * )
     command="${REMOTE_COIN_HOME}/bin/coin-${ACT} $act_arg"
