@@ -28,8 +28,8 @@ Option:
     -H, --home <oracle_home>    ORACLE_HOME
     -l, --log <logfile>         Log file
     -i, --interval <sec>        Interval in seconds
-    -A, --align_interval        Align interval from the beginning to the beginning of the next
-    -n, --num_sample <num>      Number of samples
+    -A, --align-interval        Align interval from the beginning to the beginning of the next
+    -n, --num-sample <num>      Number of samples
     -P, --prelim                SQL*Plus with prelim option
     -z, --gzip                  Compress the log file by gzip
     -h, --help                  Output help
@@ -151,11 +151,11 @@ do
         shift
       fi
       ;;
-    -A|--align_interval )
+    -A|--align-interval )
       ALIGN_INTERVAL=1
       shift
       ;;
-    -n|--num_sample )
+    -n|--num-sample )
       shift
       if [ -n "$1" ]
       then
