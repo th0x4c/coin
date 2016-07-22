@@ -45,6 +45,11 @@ show_grid_sid()
   echo "There is NO Grid Infrastructure SID." > /dev/null
 }
 
+show_cell_sid()
+{
+  echo "There is NO Cell SID." > /dev/null
+}
+
 show_db_home()
 {
   grep -v "^\#" /etc/oratab 2>/dev/null | grep -v "^\$" | grep -v "^+ASM" | grep -v "^\*" | cut -d":" -f2  | uniq
@@ -58,6 +63,11 @@ show_asm_home()
 show_grid_home()
 {
   show_asm_home
+}
+
+show_cell_home()
+{
+  ls -d /opt/oracle/cell 2>/dev/null
 }
 
 upper()
@@ -145,6 +155,16 @@ show_grid_alert()
   fi
 }
 
+show_cell_alert()
+{
+  local home=$(show_cell_home)
+
+  if [ -n "$home" ]
+  then
+    find $home/log/diag/asm/cell/$(lower $(hostname -s)) -name 'alert*.log'
+  fi
+}
+
 key()
 {
   local target=$1
@@ -204,7 +224,7 @@ fi
 
 for target in $TARGETS
 do
-  if [ $target != "db" -a $target != "asm" -a $target != "grid" ]
+  if [ $target != "db" -a $target != "asm" -a $target != "grid" -a $target != "cell" ]
   then
     echo "$target is unknown."
     usage
