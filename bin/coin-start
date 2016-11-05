@@ -100,6 +100,23 @@ show_parameter()
 EOF
 }
 
+diag_info()
+{
+  local name=$1
+
+  sqlplus -S /nolog <<EOF
+  set feedback off
+  set pages 0
+  connect / as sysdba
+  select value from v\$diag_info where upper(name) = upper('$name');
+EOF
+}
+
+diag_trace()
+{
+  diag_info "Diag Trace"
+}
+
 execute()
 {
   local timeout=$1

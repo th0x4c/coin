@@ -17,7 +17,5 @@ coin_main()
 
 coin_teardown()
 {
-  bdump=$(show_parameter "background_dump_dest")
-  udump=$(show_parameter "user_dump_dest")
-  collect ${bdump},${udump}
+  collect $(diag_trace)
 }

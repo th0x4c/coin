@@ -44,9 +44,7 @@ coin_teardown()
 {
   execute $TIMEOUT "awr_create_snapshot_report_text_rac.sql ${LOG_DIR}/awr_create_snapshot_report_text_rac $STARTDATE" "" ""
 
-  bdump=$(show_parameter "background_dump_dest")
-  udump=$(show_parameter "user_dump_dest")
-  collect ${bdump},${udump}
+  collect $(diag_trace)
 
   asm_alert=$(${LIBEXEC_DIR}/coin-orainfo.sh -n -A asm)
   if [ -n "$asm_alert" ]

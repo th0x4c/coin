@@ -84,7 +84,7 @@ lower()
   echo $str | tr '[A-Z]' '[a-z]'
 }
 
-show_background_dump_dest()
+show_diag_trace()
 {
   local oracle_home=$1
   local oracle_sid=$2
@@ -96,7 +96,7 @@ show_background_dump_dest()
   set feedback off
   set pages 0
   connect / as sysdba
-  select value from v\$parameter where upper(name) = 'BACKGROUND_DUMP_DEST';
+  select value from v\$diag_info where upper(name) = upper('Diag Trace');
 EOF
 }
 
@@ -129,7 +129,7 @@ show_dbasm_alert()
     else
       for sid in $(show_${target}_sid)
       do
-        find $(show_background_dump_dest $home $sid) -name 'alert_'${sid}'.log'
+        find $(show_diag_trace $home $sid) -name 'alert_'${sid}'.log'
       done
     fi
   done
