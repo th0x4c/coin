@@ -7,13 +7,27 @@ now=$(date +%Y-%m-%dT%H:%M:%S)
 echo "$CNAME $now [INFO] Start"
 
 COMMAND="mpstat -P ALL $@"
-$COMMAND | awk 'BEGIN{date = strftime("%Y-%m-%d"); \
+
+if [ ! -t 0 ]
+then
+  COMMAND="cat -"
+fi
+
+$COMMAND | awk 'BEGIN{split(strftime("%m/%d/%Y"), date, "/"); \
+                      am_pm = ""; \
+                      hour = -1;
                       split(strftime("%H:%M:%S"), timestamp, ":");} \
-                /^[012][0-9]:[0-9][0-9]:[0-9][0-9]/{date = strftime("%Y-%m-%d"); \
-                                                    split($1, timestamp, ":"); \
+                $4 ~ /[01][0-9]\/[0-3][0-9]\/[0-9][0-9]/{split($4, date, "/"); date[3] += 2000;} \
+                $4 ~ /[01][0-9]\/[0-3][0-9]\/20[0-9][0-9]/{split($4, date, "/");} \
+                /^[012][0-9]:[0-9][0-9]:[0-9][0-9]/{split($1, timestamp, ":"); \
                                                     if ($2 == "PM" && timestamp[1] != 12) {timestamp[1] += 12;} \
-                                                    if ($2 == "AM" && timestamp[1] == 12) {timestamp[1] = 0}} \
-                {printf("'$CNAME' %sT%02d:%02d:%02d %s\n", date, \
+                                                    if ($2 == "AM" && timestamp[1] == 12) {timestamp[1] = 0;} \
+                                                    if ($2 == "AM" && am_pm == "PM") {date[2] += 1;} \
+                                                    if ($2 != "AM" && $2 != "PM" && timestamp[1] < hour) {date[2] += 1;} \
+                                                    am_pm = $2;
+                                                    hour = timestamp[1];}
+                {date_str = sprintf("%d %d %d 00 00 00", date[3], date[1], date[2]); \
+                 printf("'$CNAME' %sT%02d:%02d:%02d %s\n", strftime("%Y-%m-%d", mktime(date_str)), \
                                                            timestamp[1], \
                                                            timestamp[2], \
                                                            timestamp[3], \
