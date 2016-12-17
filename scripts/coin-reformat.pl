@@ -44,6 +44,21 @@ $config{IOSTAT} = { header_regex => 'Device: +rrqm\/s +wrqm\/s +r\/s +w\/s +rkB\
                                  { name => '%util',    size =>  7 } ],
                     parser => \&parse_line_sysstat };
 
+$config{IOSTAT_X} = { header_regex => 'Device: +rrqm\/s +wrqm\/s +r\/s +w\/s +rsec\/s +wsec\/s +avgrq-sz +avgqu-sz +await +svctm +%util',
+                      columns => [ { name => 'Device:',  size =>  8 },
+                                   { name => 'rrqm/s',   size => 10 },
+                                   { name => 'wrqm/s',   size => 10 },
+                                   { name => 'r/s',      size => 10 },
+                                   { name => 'w/s',      size => 10 },
+                                   { name => 'rsec/s',   size => 10 },
+                                   { name => 'wsec/s',   size => 10 },
+                                   { name => 'avgrq-sz', size => 10 },
+                                   { name => 'avgqu-sz', size => 10 },
+                                   { name => 'await',    size => 10 },
+                                   { name => 'svctm',    size => 10 },
+                                   { name => '%util',    size =>  7 } ],
+                      parser => \&parse_line_sysstat };
+
 $config{MEMINFO} = { columns => [ { name => 'name',  size => 20 },
                                   { name => 'value', size => 20 } ],
                      parser => \&parse_line_meminfo };
@@ -211,14 +226,14 @@ while (<>)
       print "\n";
       $cname = $1;
       $config = $config{$cname};
-      print_header($config) unless ($cname eq 'MPSTAT');
+      print_header($config) unless ($cname eq 'MPSTAT' || $cname eq 'IOSTAT');
     }
     $ctimestamp = $2;
   }
 
-  if ($cname eq 'MPSTAT')
+  if ($cname eq 'MPSTAT' || $cname eq 'IOSTAT')
   {
-    foreach my $mpstat ('MPSTAT', 'MPSTAT_V9')
+    foreach my $mpstat ('MPSTAT', 'MPSTAT_V9', 'IOSTAT', 'IOSTAT_X')
     {
       if (/$config{$mpstat}->{header_regex}/)
       {
