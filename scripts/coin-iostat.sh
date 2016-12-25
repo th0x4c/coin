@@ -23,7 +23,7 @@ echo "$CNAME $now [INFO] Start"
 
 COMMAND="iostat -xk -t $@"
 
-if [ ! -t 0 ]
+if [ ! -t 0 -a $# -eq 0 ]
 then
   COMMAND="cat -"
 fi

@@ -8,7 +8,7 @@ echo "$CNAME $now [INFO] Start"
 
 COMMAND="mpstat -P ALL $@"
 
-if [ ! -t 0 ]
+if [ ! -t 0 -a $# -eq 0 ]
 then
   COMMAND="cat -"
 fi
