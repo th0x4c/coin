@@ -30,7 +30,7 @@ $config{MPSTAT_V9} = { header_regex => 'CPU +%usr +%nice +%sys +%iowait +%irq +%
                        parser => \&parse_line_sysstat };
 
 $config{IOSTAT} = { header_regex => 'Device: +rrqm\/s +wrqm\/s +r\/s +w\/s +rkB\/s +wkB\/s +avgrq-sz +avgqu-sz +await +svctm +%util',
-                    columns => [ { name => 'Device:',  size =>  8 },
+                    columns => [ { name => 'Device:',  size => 12 },
                                  { name => 'rrqm/s',   size => 10 },
                                  { name => 'wrqm/s',   size => 10 },
                                  { name => 'r/s',      size => 10 },
@@ -45,7 +45,7 @@ $config{IOSTAT} = { header_regex => 'Device: +rrqm\/s +wrqm\/s +r\/s +w\/s +rkB\
                     parser => \&parse_line_sysstat };
 
 $config{IOSTAT_X} = { header_regex => 'Device: +rrqm\/s +wrqm\/s +r\/s +w\/s +rsec\/s +wsec\/s +avgrq-sz +avgqu-sz +await +svctm +%util',
-                      columns => [ { name => 'Device:',  size =>  8 },
+                      columns => [ { name => 'Device:',  size => 12 },
                                    { name => 'rrqm/s',   size => 10 },
                                    { name => 'wrqm/s',   size => 10 },
                                    { name => 'r/s',      size => 10 },
