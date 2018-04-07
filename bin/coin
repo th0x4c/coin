@@ -9,6 +9,7 @@ COMMAND_DIR=$COIN_HOME/command/
 HELP=0
 NODE=""
 OS_USER=""
+OS_PASSWORD=""
 REMOTE_COIN_HOME=$COIN_HOME
 ACT=""
 
@@ -21,11 +22,12 @@ Description:
 Usage: coin [options] <action> [<command>]
 
 Option:
-    -n, --node <node>       Remote nodes (comma-delimited list)
-    -g, --group <file>      File containing a list of remote nodes
-    -d, --directory <dir>   Deployment directory on the remote node
-    -u, --user <user>       OS user to log in as on the remote node
-    -h, --help              Output help
+    -n, --node <node>               Remote nodes (comma-delimited list)
+    -g, --group <file>              File containing a list of remote nodes
+    -d, --directory <dir>           Deployment directory on the remote node
+    -u, --user <user>               OS user to log in as on the remote node
+    -p, --password <password>       OS password to log in as on the remote node
+    -h, --help                      Output help
 
 Action:
 EOF
@@ -93,14 +95,35 @@ match_action()
 
 node_with_user()
 {
-  local node=$1
+  local nodes=$1
+  local ret=""
+  local nd=""
 
-  if [ -n "$OS_USER" ]
-  then
-    echo "${OS_USER}@$node" | sed 's/,/,'$OS_USER'@/g'
-  else
-    echo $node
-  fi
+  for node in $(echo $nodes | sed 's/,/ /g')
+  do
+    nd=$node
+    case $node in
+      */*@* ) # user/password@hostname
+        ;;
+      *@* ) # user@hostname
+        if [ -n "$OS_PASSWORD" ]
+        then
+          nd=$(echo $node | sed 's/@/\/'$OS_PASSWORD'@/')
+        fi
+        ;;
+      * ) # hostname
+        if [ -n "$OS_PASSWORD" ]
+        then
+          nd="${OS_USER}/${OS_PASSWORD}@$node"
+        else
+          nd="${OS_USER}@$node"
+        fi
+        ;;
+    esac
+    ret="$ret,$nd"
+  done
+
+  echo $ret | sed 's/^,//'
 }
 
 node_from_file()
@@ -145,6 +168,14 @@ do
       if [ -n "$1" ]
       then
         OS_USER=$1
+        shift
+      fi
+      ;;
+    -p|--password )
+      shift
+      if [ -n "$1" ]
+      then
+        OS_PASSWORD=$1
         shift
       fi
       ;;
@@ -205,7 +236,7 @@ case $ACT in
     pidlist_before=$($LIBEXEC_DIR/coin-pid.sh $command)
     for node in $(echo $NODE | sed 's/,/ /g')
     do
-      ssh -f $(node_with_user $node) $command
+      $LIBEXEC_DIR/coin-sshpass.sh ssh -f $(node_with_user $node) $command
     done
     pidlist_after=$($LIBEXEC_DIR/coin-pid.sh $command)
 

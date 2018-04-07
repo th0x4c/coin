@@ -3,6 +3,8 @@
 COIN_HOME=$(dirname $0)/../
 COIN_HOME=$($COIN_HOME/libexec/coin-expand-path.sh $COIN_HOME)
 
+LIBEXEC_DIR=$COIN_HOME/libexec/
+
 NODE=""
 REMOTE_COIN_HOME=$COIN_HOME
 CLEAN=0
@@ -39,7 +41,7 @@ last()
   local dir=$2
   local src=$3
 
-  ssh $node "cd $dir; ls -dtr $src | tail -1"
+  $LIBEXEC_DIR/coin-sshpass.sh ssh $node "cd $dir; ls -dtr $src | tail -1"
 }
 
 while [ $# -gt 0 ]
@@ -89,7 +91,7 @@ then
   exit
 fi
 
-DSTDIR=$($COIN_HOME/libexec/coin-expand-path.sh $DSTDIR)
+DSTDIR=$($LIBEXEC_DIR/coin-expand-path.sh $DSTDIR)
 
 if [ ! -d $DSTDIR ]
 then
@@ -109,9 +111,11 @@ LOG_DIR=$REMOTE_COIN_HOME/log
 
 for node in $(echo $NODE | sed 's/,/ /g')
 do
-  if [ ! -d ${DSTDIR}/${node} ]
+  dstdir=${DSTDIR}/$($LIBEXEC_DIR/coin-sshpass.sh --remove-password $node)
+
+  if [ ! -d $dstdir ]
   then
-    mkdir ${DSTDIR}/${node}
+    mkdir $dstdir
   fi
 
   if [ $LAST -eq 1 ]
@@ -128,17 +132,17 @@ do
     exit
   fi
 
-  scp -rp ${node}:${LOG_DIR}/${srcdir} ${DSTDIR}/${node}
+  $LIBEXEC_DIR/coin-sshpass.sh scp -rp ${node}:${LOG_DIR}/${srcdir} $dstdir
   scp_exit_status=$?
 
   if [ $CLEAN -eq 1 -a $scp_exit_status -eq 0 ]
   then
-    echo "Remove ${LOG_DIR}/${srcdir} on $node"
-    ssh $node "rm -rf ${LOG_DIR}/${srcdir}"
+    echo "Remove ${LOG_DIR}/${srcdir} on $($LIBEXEC_DIR/coin-sshpass.sh --remove-password $node)"
+    $LIBEXEC_DIR/coin-sshpass.sh ssh $node "rm -rf ${LOG_DIR}/${srcdir}"
   fi
 
   if [ $scp_exit_status -ne 0 ]
   then
-    rmdir ${DSTDIR}/${node}
+    rmdir $dstdir
   fi
 done

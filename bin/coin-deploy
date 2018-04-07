@@ -3,6 +3,8 @@
 COIN_HOME=$(dirname $0)/../
 COIN_HOME=$($COIN_HOME/libexec/coin-expand-path.sh $COIN_HOME)
 
+LIBEXEC_DIR=$COIN_HOME/libexec/
+
 NODE=""
 REMOTE_COIN_HOME=$COIN_HOME
 
@@ -73,6 +75,6 @@ fi
 coin_dir=$(dirname $REMOTE_COIN_HOME)
 for node in $(echo $NODE | sed 's/,/ /g')
 do
-  ssh $node "mkdir -p $coin_dir"
-  scp -rp $COIN_HOME ${node}:${coin_dir}
+  $LIBEXEC_DIR/coin-sshpass.sh ssh $node "mkdir -p $coin_dir"
+  $LIBEXEC_DIR/coin-sshpass.sh scp -rp $COIN_HOME ${node}:${coin_dir}
 done

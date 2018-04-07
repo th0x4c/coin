@@ -3,6 +3,8 @@
 COIN_HOME=$(dirname $0)/../
 COIN_HOME=$($COIN_HOME/libexec/coin-expand-path.sh $COIN_HOME)
 
+LIBEXEC_DIR=$COIN_HOME/libexec/
+
 NODE=""
 REMOTE_COIN_HOME=$COIN_HOME
 
@@ -73,6 +75,6 @@ fi
 coin_dir=$(dirname $REMOTE_COIN_HOME)
 for node in $(echo $NODE | sed 's/,/ /g')
 do
-  echo "Remove ${coin_dir}/coin on $node"
-  ssh $node "rm -rf ${coin_dir}/coin"
+  echo "Remove ${coin_dir}/coin on $($LIBEXEC_DIR/coin-sshpass.sh --remove-password $node)"
+  $LIBEXEC_DIR/coin-sshpass.sh ssh $node "rm -rf ${coin_dir}/coin"
 done
