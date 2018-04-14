@@ -122,4 +122,4 @@ export COIN_SSHPASS_PASSWORD=$PASSWORD
 export SSH_ASKPASS=$0 # see ENVIRONMENT section in the man page of ssh(1)
 export DISPLAY="dummy:0"
 
-exec setsid $COMMAND $arguments
+exec setsid $COMMAND -o StrictHostKeyChecking=no $arguments
