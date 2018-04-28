@@ -29,6 +29,20 @@ $config{MPSTAT_V9} = { header_regex => 'CPU +%usr +%nice +%sys +%iowait +%irq +%
                                     { name => '%idle',   size =>  7 } ],
                        parser => \&parse_line_sysstat };
 
+$config{MPSTAT_V10} = { header_regex => 'CPU +%usr +%nice +%sys +%iowait +%irq +%soft +%steal +%guest +%gnice +%idle',
+                        columns => [ { name => 'CPU',     size =>  3 },
+                                     { name => '%usr',    size =>  7 },
+                                     { name => '%nice',   size =>  7 },
+                                     { name => '%sys',    size =>  7 },
+                                     { name => '%iowait', size =>  7 },
+                                     { name => '%irq',    size =>  7 },
+                                     { name => '%soft',   size =>  7 },
+                                     { name => '%steal',  size =>  7 },
+                                     { name => '%guest',  size =>  7 },
+                                     { name => '%gnice',  size =>  7 },
+                                     { name => '%idle',   size =>  7 } ],
+                        parser => \&parse_line_sysstat };
+
 $config{IOSTAT} = { header_regex => 'Device: +rrqm\/s +wrqm\/s +r\/s +w\/s +rkB\/s +wkB\/s +avgrq-sz +avgqu-sz +await +svctm +%util',
                     columns => [ { name => 'Device:',  size => 12 },
                                  { name => 'rrqm/s',   size => 10 },
@@ -43,6 +57,23 @@ $config{IOSTAT} = { header_regex => 'Device: +rrqm\/s +wrqm\/s +r\/s +w\/s +rkB\
                                  { name => 'svctm',    size => 10 },
                                  { name => '%util',    size =>  7 } ],
                     parser => \&parse_line_sysstat };
+
+$config{IOSTAT_V10} = { header_regex => 'Device: +rrqm\/s +wrqm\/s +r\/s +w\/s +rkB\/s +wkB\/s +avgrq-sz +avgqu-sz +await +r_await +w_await +svctm +%util',
+                        columns => [ { name => 'Device:',  size => 12 },
+                                     { name => 'rrqm/s',   size => 10 },
+                                     { name => 'wrqm/s',   size => 10 },
+                                     { name => 'r/s',      size => 10 },
+                                     { name => 'w/s',      size => 10 },
+                                     { name => 'rkB/s',    size => 10 },
+                                     { name => 'wkB/s',    size => 10 },
+                                     { name => 'avgrq-sz', size => 10 },
+                                     { name => 'avgqu-sz', size => 10 },
+                                     { name => 'await',    size => 10 },
+                                     { name => 'r_await',  size => 10 },
+                                     { name => 'w_await',  size => 10 },
+                                     { name => 'svctm',    size => 10 },
+                                     { name => '%util',    size =>  7 } ],
+                        parser => \&parse_line_sysstat };
 
 $config{IOSTAT_X} = { header_regex => 'Device: +rrqm\/s +wrqm\/s +r\/s +w\/s +rsec\/s +wsec\/s +avgrq-sz +avgqu-sz +await +svctm +%util',
                       columns => [ { name => 'Device:',  size => 12 },
@@ -233,7 +264,7 @@ while (<>)
 
   if ($cname eq 'MPSTAT' || $cname eq 'IOSTAT')
   {
-    foreach my $mpstat ('MPSTAT', 'MPSTAT_V9', 'IOSTAT', 'IOSTAT_X')
+    foreach my $mpstat ('MPSTAT', 'MPSTAT_V9', 'MPSTAT_V10', 'IOSTAT', 'IOSTAT_V10', 'IOSTAT_X')
     {
       if (/$config{$mpstat}->{header_regex}/)
       {
