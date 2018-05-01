@@ -323,6 +323,8 @@ while (<>)
   my $print_line = "";
   chomp;
 
+  next if (/\[INFO\] Start$/);
+
   if (/^(\S+) (\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d)/)
   {
     if ($cname ne $1)
