@@ -18,6 +18,7 @@ coin_main()
   do
     execute $TIMEOUT "coin-iostat.sh --no-first-report $INTERVAL $(expr $COUNT + 1)" "" "" &
     execute $TIMEOUT "coin-mpstat.sh $INTERVAL $COUNT"  ""                       "" &
+    execute $TIMEOUT "coin-iproute.sh"                  "-i $INTERVAL -n $COUNT" "" &
     execute $TIMEOUT "coin-netstat.sh"                  "-i $INTERVAL -n $COUNT" "" &
     execute $TIMEOUT "coin-ps-aux.sh"                   "-i $INTERVAL -n $COUNT" "" &
     execute $TIMEOUT "coin-ps-elf.sh"                   "-i $INTERVAL -n $COUNT" "" &
@@ -34,6 +35,7 @@ coin_teardown()
   ${SCRIPT_DIR}/coin-reformat.pl ${LOG_DIR}/coin-iostat/*  \
                                  ${LOG_DIR}/coin-meminfo/* \
                                  ${LOG_DIR}/coin-mpstat/*  \
+                                 ${LOG_DIR}/coin-iproute/* \
                                  ${LOG_DIR}/coin-netstat/* \
                                  > ${LOG_DIR}/osstat/osstat.log
 }
