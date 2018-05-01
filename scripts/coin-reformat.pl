@@ -107,6 +107,21 @@ $config{NETSTAT} = { columns => [ { name => 'Iface',  size => 8 },
                                   { name => 'TX bytes',    size => 20 } ],
                      parser => \&parse_line_netstat };
 
+$config{IPROUTE} = { columns => [ { name => 'Iface',  size => 20 },
+                                  { name => 'RX bytes',   size => 20 },
+                                  { name => 'RX packets', size => 16 },
+                                  { name => 'RX errors',  size => 16 },
+                                  { name => 'RX dropped', size => 16 },
+                                  { name => 'RX overrun', size => 16 },
+                                  { name => 'RX mcast',   size => 16 },
+                                  { name => 'TX bytes',   size => 20 },
+                                  { name => 'TX packets', size => 16 },
+                                  { name => 'TX errors',  size => 16 },
+                                  { name => 'TX dropped', size => 16 },
+                                  { name => 'TX carrier', size => 16 },
+                                  { name => 'TX collsns', size => 16 } ],
+                     parser => \&parse_line_iproute };
+
 sub column_names
 {
   my ($config) = @_;
@@ -233,6 +248,64 @@ sub parse_line_meminfo
       $netstat{'RX bytes'} = $1;
       $netstat{'TX bytes'} = $2;
       return sprintf(row_format($config), @netstat{column_names($config)});
+    }
+
+    return;
+  }
+}
+
+{
+  my %iproute = ( rt => "",
+                  Iface => "",
+                  'RX bytes'   => 0,
+                  'RX packets' => 0,
+                  'RX errors'  => 0,
+                  'RX dropped' => 0,
+                  'RX overrun' => 0,
+                  'RX mcast'   => 0,
+                  'TX bytes'   => 0,
+                  'TX packets' => 0,
+                  'TX errors'  => 0,
+                  'TX dropped' => 0,
+                  'TX carrier' => 0,
+                  'TX collsns' => 0 );
+
+  sub parse_line_iproute
+  {
+    my ($config, $line) = @_;
+    my @values = ();
+
+    @values = split(/ +/, $line);
+
+    if (substr($line, 28) =~ /^\d+: (\S+): /)
+    {
+      $iproute{Iface} = $1;
+    }
+
+    if ($iproute{rt} eq "RX" || $iproute{rt} eq "TX")
+    {
+      my $rt = $iproute{rt};
+      $iproute{rt} = "";
+      $iproute{$rt . ' bytes'}   = $values[2];
+      $iproute{$rt . ' packets'} = $values[3];
+      $iproute{$rt . ' errors'}  = $values[4];
+      $iproute{$rt . ' dropped'} = $values[5];
+      if ($rt eq "RX")
+      {
+        $iproute{$rt . ' overrun'} = $values[6];
+        $iproute{$rt . ' mcast'}   = $values[7];
+      }
+      elsif ($rt eq "TX")
+      {
+        $iproute{$rt . ' carrier'} = $values[6];
+        $iproute{$rt . ' collsns'} = $values[7];
+        return sprintf(row_format($config), @iproute{column_names($config)});
+      }
+    }
+
+    if ($line =~ /(RX|TX): bytes\s+packets\s+errors\s+dropped\s+/)
+    {
+      $iproute{rt} = $1;
     }
 
     return;
