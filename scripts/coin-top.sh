@@ -1,6 +1,7 @@
 #!/bin/sh
 
 LANG=C
+LC_ALL=C
 CNAME="TOP"
 
 OPT_DELAY=""

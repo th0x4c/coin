@@ -1,6 +1,7 @@
 #!/bin/sh
 
 LANG=C
+LC_ALL=C
 CNAME="IOSTAT"
 
 FIRST_REPORT_COUNT=1

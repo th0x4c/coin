@@ -1,6 +1,7 @@
 #!/bin/sh
 
 LANG=C
+LC_ALL=C
 CNAME="VMSTAT"
 
 now=$(date +%Y-%m-%dT%H:%M:%S)
